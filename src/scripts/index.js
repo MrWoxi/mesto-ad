@@ -11,39 +11,37 @@ import {
   changeLikeCardStatus,
 } from "./components/api.js";
 
-// DOM узлы
-const placesWrap = document.querySelector(".places__list");
+const placesList = document.querySelector(".places__list");
 const logo = document.querySelector(".header__logo");
 
-const usersStatsModalWindow = document.querySelector(".popup_type_info");
-const usersStatsModalInfoList = usersStatsModalWindow.querySelector(".popup__info");
-const usersStatsModalUserList = usersStatsModalWindow.querySelector(".popup__list");
+const statsPopup = document.querySelector(".popup_type_info");
+const statsInfoList = statsPopup.querySelector(".popup__info");
+const statsUsersList = statsPopup.querySelector(".popup__list");
 
-const profileFormModalWindow = document.querySelector(".popup_type_edit");
-const profileForm = profileFormModalWindow.querySelector(".popup__form");
-const profileTitleInput = profileForm.querySelector(".popup__input_type_name");
-const profileDescriptionInput = profileForm.querySelector(".popup__input_type_description");
+const editProfilePopup = document.querySelector(".popup_type_edit");
+const profileForm = editProfilePopup.querySelector(".popup__form");
+const profileNameInput = profileForm.querySelector(".popup__input_type_name");
+const profileJobInput = profileForm.querySelector(".popup__input_type_description");
 const profileSubmitButton = profileForm.querySelector(".popup__button");
 
-const cardFormModalWindow = document.querySelector(".popup_type_new-card");
-const cardForm = cardFormModalWindow.querySelector(".popup__form");
+const newCardPopup = document.querySelector(".popup_type_new-card");
+const cardForm = newCardPopup.querySelector(".popup__form");
 const cardNameInput = cardForm.querySelector(".popup__input_type_card-name");
 const cardLinkInput = cardForm.querySelector(".popup__input_type_url");
 const cardSubmitButton = cardForm.querySelector(".popup__button");
 
-const imageModalWindow = document.querySelector(".popup_type_image");
-const imageElement = imageModalWindow.querySelector(".popup__image");
-const imageCaption = imageModalWindow.querySelector(".popup__caption");
+const imagePopup = document.querySelector(".popup_type_image");
+const imagePopupImg = imagePopup.querySelector(".popup__image");
+const imagePopupCaption = imagePopup.querySelector(".popup__caption");
 
 const editProfileButton = document.querySelector(".profile__edit-button");
 const addCardButton = document.querySelector(".profile__add-button");
-
+const profileAvatar = document.querySelector(".profile__image");
 const profileTitle = document.querySelector(".profile__title");
 const profileDescription = document.querySelector(".profile__description");
-const profileAvatar = document.querySelector(".profile__image");
 
-const avatarFormModalWindow = document.querySelector(".popup_type_edit-avatar");
-const avatarForm = avatarFormModalWindow.querySelector(".popup__form");
+const avatarPopup = document.querySelector(".popup_type_edit-avatar");
+const avatarForm = avatarPopup.querySelector(".popup__form");
 const avatarInput = avatarForm.querySelector(".popup__input");
 const avatarSubmitButton = avatarForm.querySelector(".popup__button");
 
@@ -65,36 +63,28 @@ const formatDate = (date) =>
     day: "numeric",
   });
 
-const createInfoString = (term, description) => {
-  const infoItem = document
+const createStatItem = (term, value) => {
+  const item = document
     .getElementById("popup-info-definition-template")
     .content.querySelector(".popup__info-item")
     .cloneNode(true);
-  infoItem.querySelector(".popup__info-term").textContent = term;
-  infoItem.querySelector(".popup__info-description").textContent = description;
-  return infoItem;
+  item.querySelector(".popup__info-term").textContent = term;
+  item.querySelector(".popup__info-description").textContent = value;
+  return item;
 };
 
 const handleLogoClick = () => {
   getCardList()
     .then((cards) => {
-      usersStatsModalInfoList.replaceChildren();
-      usersStatsModalUserList.replaceChildren();
+      statsInfoList.replaceChildren();
+      statsUsersList.replaceChildren();
 
-      usersStatsModalInfoList.append(
-        createInfoString("Всего карточек:", cards.length)
+      statsInfoList.append(createStatItem("Всего карточек:", cards.length));
+      statsInfoList.append(
+        createStatItem("Первая создана:", formatDate(new Date(cards[cards.length - 1].createdAt)))
       );
-      usersStatsModalInfoList.append(
-        createInfoString(
-          "Первая создана:",
-          formatDate(new Date(cards[cards.length - 1].createdAt))
-        )
-      );
-      usersStatsModalInfoList.append(
-        createInfoString(
-          "Последняя создана:",
-          formatDate(new Date(cards[0].createdAt))
-        )
+      statsInfoList.append(
+        createStatItem("Последняя создана:", formatDate(new Date(cards[0].createdAt)))
       );
 
       const usersMap = {};
@@ -109,32 +99,28 @@ const handleLogoClick = () => {
       const users = Object.values(usersMap);
       const maxCards = Math.max(...users.map((u) => u.count));
 
-      usersStatsModalInfoList.append(
-        createInfoString("Всего пользователей:", users.length)
-      );
-      usersStatsModalInfoList.append(
-        createInfoString("Максимум карточек от одного:", maxCards)
-      );
+      statsInfoList.append(createStatItem("Всего пользователей:", users.length));
+      statsInfoList.append(createStatItem("Максимум карточек от одного:", maxCards));
 
       users.forEach(({ user }) => {
-        const userElement = document
+        const badge = document
           .getElementById("popup-info-user-preview-template")
           .content.querySelector(".popup__list-item")
           .cloneNode(true);
-        userElement.textContent = user.name;
-        usersStatsModalUserList.append(userElement);
+        badge.textContent = user.name;
+        statsUsersList.append(badge);
       });
 
-      openModalWindow(usersStatsModalWindow);
+      openModalWindow(statsPopup);
     })
     .catch(console.log);
 };
 
 const handlePreviewPicture = ({ name, link }) => {
-  imageElement.src = link;
-  imageElement.alt = name;
-  imageCaption.textContent = name;
-  openModalWindow(imageModalWindow);
+  imagePopupImg.src = link;
+  imagePopupImg.alt = name;
+  imagePopupCaption.textContent = name;
+  openModalWindow(imagePopup);
 };
 
 const handleLikeCard = (cardId, isLiked, likeButton, likeCount) => {
@@ -148,14 +134,12 @@ const handleLikeCard = (cardId, isLiked, likeButton, likeCount) => {
 
 const handleDeleteCard = (cardId, cardElement) => {
   deleteCard(cardId)
-    .then(() => {
-      cardElement.remove();
-    })
+    .then(() => cardElement.remove())
     .catch(console.log);
 };
 
 const renderCard = (cardData, method = "append") => {
-  placesWrap[method](
+  placesList[method](
     createCardElement(cardData, currentUserId, {
       onPreviewPicture: handlePreviewPicture,
       onLikeCard: handleLikeCard,
@@ -168,14 +152,11 @@ const handleProfileFormSubmit = (evt) => {
   evt.preventDefault();
   const originalText = profileSubmitButton.textContent;
   profileSubmitButton.textContent = "Сохранение...";
-  setUserInfo({
-    name: profileTitleInput.value,
-    about: profileDescriptionInput.value,
-  })
+  setUserInfo({ name: profileNameInput.value, about: profileJobInput.value })
     .then((userData) => {
       profileTitle.textContent = userData.name;
       profileDescription.textContent = userData.about;
-      closeModalWindow(profileFormModalWindow);
+      closeModalWindow(editProfilePopup);
     })
     .catch(console.log)
     .finally(() => {
@@ -191,7 +172,7 @@ const handleAvatarFormSubmit = (evt) => {
     .then((userData) => {
       profileAvatar.style.backgroundImage = `url(${userData.avatar})`;
       avatarForm.reset();
-      closeModalWindow(avatarFormModalWindow);
+      closeModalWindow(avatarPopup);
     })
     .catch(console.log)
     .finally(() => {
@@ -203,14 +184,11 @@ const handleCardFormSubmit = (evt) => {
   evt.preventDefault();
   const originalText = cardSubmitButton.textContent;
   cardSubmitButton.textContent = "Создание...";
-  addCard({
-    name: cardNameInput.value,
-    link: cardLinkInput.value,
-  })
+  addCard({ name: cardNameInput.value, link: cardLinkInput.value })
     .then((cardData) => {
       renderCard(cardData, "prepend");
       cardForm.reset();
-      closeModalWindow(cardFormModalWindow);
+      closeModalWindow(newCardPopup);
     })
     .catch(console.log)
     .finally(() => {
@@ -226,26 +204,25 @@ logo.addEventListener("click", handleLogoClick);
 
 editProfileButton.addEventListener("click", () => {
   clearValidation(profileForm, validationSettings);
-  profileTitleInput.value = profileTitle.textContent;
-  profileDescriptionInput.value = profileDescription.textContent;
-  profileTitleInput.dispatchEvent(new Event("input"));
-  openModalWindow(profileFormModalWindow);
+  profileNameInput.value = profileTitle.textContent;
+  profileJobInput.value = profileDescription.textContent;
+  profileNameInput.dispatchEvent(new Event("input"));
+  openModalWindow(editProfilePopup);
 });
 
 profileAvatar.addEventListener("click", () => {
   clearValidation(avatarForm, validationSettings);
   avatarForm.reset();
-  openModalWindow(avatarFormModalWindow);
+  openModalWindow(avatarPopup);
 });
 
 addCardButton.addEventListener("click", () => {
   clearValidation(cardForm, validationSettings);
   cardForm.reset();
-  openModalWindow(cardFormModalWindow);
+  openModalWindow(newCardPopup);
 });
 
-const allPopups = document.querySelectorAll(".popup");
-allPopups.forEach((popup) => {
+document.querySelectorAll(".popup").forEach((popup) => {
   setCloseModalWindowEventListeners(popup);
 });
 
