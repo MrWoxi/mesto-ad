@@ -45,3 +45,12 @@ export const createCardElement = (
 
   return cardElement;
 };
+
+export const updateLike = (likes, likeButton, likeCount) => {
+  likeButton.classList.toggle("card__like-button_is-active");
+  likeCount.textContent = likes.length;
+};
+
+export const removeCard = (cardElement) => {
+  cardElement.remove();
+};
