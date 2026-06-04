@@ -75,8 +75,8 @@ const createInfoString = (term, description) => {
 const handleLogoClick = () => {
   getCardList()
     .then((cards) => {
-      usersStatsModalInfoList.innerHTML = "";
-      usersStatsModalUserList.innerHTML = "";
+      usersStatsModalInfoList.replaceChildren();
+      usersStatsModalUserList.replaceChildren();
 
       usersStatsModalInfoList.append(
         createInfoString("Всего карточек:", cards.length)
