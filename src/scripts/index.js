@@ -18,22 +18,25 @@ const logo = document.querySelector(".header__logo");
 const usersStatsModalWindow = document.querySelector(".popup_type_info");
 const usersStatsModalInfoList = usersStatsModalWindow.querySelector(".popup__info");
 const usersStatsModalUserList = usersStatsModalWindow.querySelector(".popup__list");
+
 const profileFormModalWindow = document.querySelector(".popup_type_edit");
 const profileForm = profileFormModalWindow.querySelector(".popup__form");
 const profileTitleInput = profileForm.querySelector(".popup__input_type_name");
 const profileDescriptionInput = profileForm.querySelector(".popup__input_type_description");
+const profileSubmitButton = profileForm.querySelector(".popup__button");
 
 const cardFormModalWindow = document.querySelector(".popup_type_new-card");
 const cardForm = cardFormModalWindow.querySelector(".popup__form");
 const cardNameInput = cardForm.querySelector(".popup__input_type_card-name");
 const cardLinkInput = cardForm.querySelector(".popup__input_type_url");
+const cardSubmitButton = cardForm.querySelector(".popup__button");
 
 const imageModalWindow = document.querySelector(".popup_type_image");
 const imageElement = imageModalWindow.querySelector(".popup__image");
 const imageCaption = imageModalWindow.querySelector(".popup__caption");
 
-const openProfileFormButton = document.querySelector(".profile__edit-button");
-const openCardFormButton = document.querySelector(".profile__add-button");
+const editProfileButton = document.querySelector(".profile__edit-button");
+const addCardButton = document.querySelector(".profile__add-button");
 
 const profileTitle = document.querySelector(".profile__title");
 const profileDescription = document.querySelector(".profile__description");
@@ -42,8 +45,8 @@ const profileAvatar = document.querySelector(".profile__image");
 const avatarFormModalWindow = document.querySelector(".popup_type_edit-avatar");
 const avatarForm = avatarFormModalWindow.querySelector(".popup__form");
 const avatarInput = avatarForm.querySelector(".popup__input");
+const avatarSubmitButton = avatarForm.querySelector(".popup__button");
 
-// Настройки валидации
 const validationSettings = {
   formSelector: ".popup__form",
   inputSelector: ".popup__input",
@@ -94,7 +97,6 @@ const handleLogoClick = () => {
         )
       );
 
-      // Подсчёт уникальных пользователей и количества их карточек
       const usersMap = {};
       cards.forEach((card) => {
         const id = card.owner._id;
@@ -114,7 +116,6 @@ const handleLogoClick = () => {
         createInfoString("Максимум карточек от одного:", maxCards)
       );
 
-      // Список пользователей
       users.forEach(({ user }) => {
         const userElement = document
           .getElementById("popup-info-user-preview-template")
@@ -127,11 +128,6 @@ const handleLogoClick = () => {
       openModalWindow(usersStatsModalWindow);
     })
     .catch(console.log);
-};
-
-// Вспомогательная функция: меняет текст кнопки на время запроса
-const renderLoading = (button, isLoading, originalText) => {
-  button.textContent = isLoading ? "Сохранение..." : originalText;
 };
 
 const handlePreviewPicture = ({ name, link }) => {
@@ -170,9 +166,8 @@ const renderCard = (cardData, method = "append") => {
 
 const handleProfileFormSubmit = (evt) => {
   evt.preventDefault();
-  const submitButton = profileForm.querySelector(".popup__button");
-  const originalText = submitButton.textContent;
-  renderLoading(submitButton, true);
+  const originalText = profileSubmitButton.textContent;
+  profileSubmitButton.textContent = "Сохранение...";
   setUserInfo({
     name: profileTitleInput.value,
     about: profileDescriptionInput.value,
@@ -184,15 +179,14 @@ const handleProfileFormSubmit = (evt) => {
     })
     .catch(console.log)
     .finally(() => {
-      submitButton.textContent = originalText;
+      profileSubmitButton.textContent = originalText;
     });
 };
 
 const handleAvatarFormSubmit = (evt) => {
   evt.preventDefault();
-  const submitButton = avatarForm.querySelector(".popup__button");
-  const originalText = submitButton.textContent;
-  renderLoading(submitButton, true);
+  const originalText = avatarSubmitButton.textContent;
+  avatarSubmitButton.textContent = "Сохранение...";
   updateAvatar({ avatar: avatarInput.value })
     .then((userData) => {
       profileAvatar.style.backgroundImage = `url(${userData.avatar})`;
@@ -201,15 +195,14 @@ const handleAvatarFormSubmit = (evt) => {
     })
     .catch(console.log)
     .finally(() => {
-      submitButton.textContent = originalText;
+      avatarSubmitButton.textContent = originalText;
     });
 };
 
 const handleCardFormSubmit = (evt) => {
   evt.preventDefault();
-  const submitButton = cardForm.querySelector(".popup__button");
-  const originalText = submitButton.textContent;
-  submitButton.textContent = "Создание...";
+  const originalText = cardSubmitButton.textContent;
+  cardSubmitButton.textContent = "Создание...";
   addCard({
     name: cardNameInput.value,
     link: cardLinkInput.value,
@@ -221,19 +214,17 @@ const handleCardFormSubmit = (evt) => {
     })
     .catch(console.log)
     .finally(() => {
-      submitButton.textContent = originalText;
+      cardSubmitButton.textContent = originalText;
     });
 };
 
-// EventListeners для форм
 profileForm.addEventListener("submit", handleProfileFormSubmit);
 cardForm.addEventListener("submit", handleCardFormSubmit);
 avatarForm.addEventListener("submit", handleAvatarFormSubmit);
 
-// Открытие попапов
 logo.addEventListener("click", handleLogoClick);
 
-openProfileFormButton.addEventListener("click", () => {
+editProfileButton.addEventListener("click", () => {
   clearValidation(profileForm, validationSettings);
   profileTitleInput.value = profileTitle.textContent;
   profileDescriptionInput.value = profileDescription.textContent;
@@ -247,22 +238,19 @@ profileAvatar.addEventListener("click", () => {
   openModalWindow(avatarFormModalWindow);
 });
 
-openCardFormButton.addEventListener("click", () => {
+addCardButton.addEventListener("click", () => {
   clearValidation(cardForm, validationSettings);
   cardForm.reset();
   openModalWindow(cardFormModalWindow);
 });
 
-// Слушатели закрытия для всех попапов
 const allPopups = document.querySelectorAll(".popup");
 allPopups.forEach((popup) => {
   setCloseModalWindowEventListeners(popup);
 });
 
-// Включение валидации
 enableValidation(validationSettings);
 
-// Загрузка данных с сервера
 Promise.all([getCardList(), getUserInfo()])
   .then(([cards, userData]) => {
     currentUserId = userData._id;

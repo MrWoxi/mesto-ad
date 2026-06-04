@@ -22,12 +22,10 @@ export const createCardElement = (
 
   likeCount.textContent = cardData.likes.length;
 
-  // Устанавливаем начальное состояние лайка
   if (cardData.likes.some((user) => user._id === userId)) {
     likeButton.classList.add("card__like-button_is-active");
   }
 
-  // Кнопка удаления — только для своих карточек
   if (cardData.owner._id !== userId) {
     deleteButton.remove();
   } else {
