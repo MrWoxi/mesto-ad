@@ -13,6 +13,11 @@ import {
 
 // DOM узлы
 const placesWrap = document.querySelector(".places__list");
+const logo = document.querySelector(".header__logo");
+
+const usersStatsModalWindow = document.querySelector(".popup_type_info");
+const usersStatsModalInfoList = usersStatsModalWindow.querySelector(".popup__info");
+const usersStatsModalUserList = usersStatsModalWindow.querySelector(".popup__list");
 const profileFormModalWindow = document.querySelector(".popup_type_edit");
 const profileForm = profileFormModalWindow.querySelector(".popup__form");
 const profileTitleInput = profileForm.querySelector(".popup__input_type_name");
@@ -49,6 +54,80 @@ const validationSettings = {
 };
 
 let currentUserId;
+
+const formatDate = (date) =>
+  date.toLocaleDateString("ru-RU", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
+const createInfoString = (term, description) => {
+  const infoItem = document
+    .getElementById("popup-info-definition-template")
+    .content.querySelector(".popup__info-item")
+    .cloneNode(true);
+  infoItem.querySelector(".popup__info-term").textContent = term;
+  infoItem.querySelector(".popup__info-description").textContent = description;
+  return infoItem;
+};
+
+const handleLogoClick = () => {
+  getCardList()
+    .then((cards) => {
+      usersStatsModalInfoList.innerHTML = "";
+      usersStatsModalUserList.innerHTML = "";
+
+      usersStatsModalInfoList.append(
+        createInfoString("Всего карточек:", cards.length)
+      );
+      usersStatsModalInfoList.append(
+        createInfoString(
+          "Первая создана:",
+          formatDate(new Date(cards[cards.length - 1].createdAt))
+        )
+      );
+      usersStatsModalInfoList.append(
+        createInfoString(
+          "Последняя создана:",
+          formatDate(new Date(cards[0].createdAt))
+        )
+      );
+
+      // Подсчёт уникальных пользователей и количества их карточек
+      const usersMap = {};
+      cards.forEach((card) => {
+        const id = card.owner._id;
+        if (!usersMap[id]) {
+          usersMap[id] = { user: card.owner, count: 0 };
+        }
+        usersMap[id].count++;
+      });
+
+      const users = Object.values(usersMap);
+      const maxCards = Math.max(...users.map((u) => u.count));
+
+      usersStatsModalInfoList.append(
+        createInfoString("Всего пользователей:", users.length)
+      );
+      usersStatsModalInfoList.append(
+        createInfoString("Максимум карточек от одного:", maxCards)
+      );
+
+      // Список пользователей
+      users.forEach(({ user }) => {
+        const userElement = document
+          .getElementById("popup-info-user-preview-template")
+          .content.querySelector(".popup__list-item")
+          .cloneNode(true);
+        userElement.textContent = user.name;
+        usersStatsModalUserList.append(userElement);
+      });
+
+      openModalWindow(usersStatsModalWindow);
+    })
+    .catch(console.log);
+};
 
 // Вспомогательная функция: меняет текст кнопки на время запроса
 const renderLoading = (button, isLoading, originalText) => {
@@ -152,6 +231,8 @@ cardForm.addEventListener("submit", handleCardFormSubmit);
 avatarForm.addEventListener("submit", handleAvatarFormSubmit);
 
 // Открытие попапов
+logo.addEventListener("click", handleLogoClick);
+
 openProfileFormButton.addEventListener("click", () => {
   clearValidation(profileForm, validationSettings);
   profileTitleInput.value = profileTitle.textContent;
